@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>StudyGoat - Chatbot</title>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; padding: 20px; }
+    #chatbox { width: 100%; height: 300px; background: white; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; }
+    #userInput { width: 80%; padding: 10px; margin-top: 10px; }
+    #sendBtn { padding: 10px; }
+    footer { margin-top: 20px; text-align: center; color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>🧠 StudyGoat</h1>
+  <div id="chatbox"></div>
+  <input type="text" id="userInput" placeholder="Ask me something...">
+  <button id="sendBtn">Send</button>
+  <footer>Made by Hammad</footer>
+
+  <script>
+    const chatbox = document.getElementById('chatbox');
+    const input = document.getElementById('userInput');
+    const button = document.getElementById('sendBtn');
+
+    button.onclick = () => {
+      const userText = input.value.trim();
+      if (!userText) return;
+      chatbox.innerHTML += `<p><strong>You:</strong> ${userText}</p>`;
+      input.value = '';
+      getBotReply(userText);
+    };
+
+    function getBotReply(text) {
+      let reply = "Hmm... I'm still learning. Try asking something else!";
+      const lower = text.toLowerCase();
+      if (lower.includes("hi") || lower.includes("hello")) reply = "Hey there! Ready to study?";
+      else if (lower.includes("who are you")) reply = "I'm StudyGoat, your AI study partner.";
+      else if (lower.includes("bye")) reply = "Goodbye! Study hard 🐐";
+      else if (lower.includes("math")) reply = "Try me with a question! I love math. 📐";
+
+      chatbox.innerHTML += `<p><strong>StudyGoat:</strong> ${reply}</p>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
