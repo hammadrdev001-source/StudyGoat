@@ -1,81 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>StudyGoat - Real AI Chatbot</title>
+  <meta charset="UTF‑8">
+  <title>StudyGoat ‑ AI Chatbot</title>
   <style>
-    body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-    h1 { text-align: center; }
-    #chat { background: #fff; padding: 15px; height: 400px; overflow-y: scroll; border: 1px solid #ccc; }
-    #input { width: 75%; padding: 10px; }
-    #send { padding: 10px; }
-    footer { text-align: center; font-size: 14px; margin-top: 20px; color: #777; }
+    body { font‑family: Arial, sans‑serif; background: #f4f4f4; padding: 20px; }
+    h1 { text‑align: center; }
+    #chat { background: #fff; padding:15px; height:400px; overflow‑y:scroll; border:1px solid #ccc; }
+    #input { width:75%; padding:10px; }
+    #send { padding:10px; }
+    footer { text‑align:center; margin:20px 0; color:#555; }
   </style>
 </head>
 <body>
   <h1>🧠 StudyGoat</h1>
   <div id="chat"></div>
-  <input type="text" id="input" placeholder="Ask me something...">
+  <input type="text" id="input" placeholder="Ask me anything...">
   <button id="send">Send</button>
-  <footer>Made by Hammad • Powered by OpenRouter</footer>
+  <footer>Made by Hammad</footer>
 
   <script>
-    const API_KEY = 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
-    const MODEL = "mistralai/mistral-7b-instruct"; // free model
+    const API_KEY = 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 // ← replace this
+    const MODEL  = "openai/gpt-3.5-turbo"; // use a supported model
+    const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
     const chatDiv = document.getElementById("chat");
-    const input = document.getElementById("input");
+    const input   = document.getElementById("input");
     const sendBtn = document.getElementById("send");
 
-    let history = [];
-
     sendBtn.onclick = sendMessage;
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
+    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
 
     function appendMessage(sender, text) {
-      const div = document.createElement("div");
-      div.innerHTML = `<p><strong>${sender}:</strong> ${text}</p>`;
-      chatDiv.appendChild(div);
+      const m = document.createElement("div");
+      m.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      chatDiv.appendChild(m);
       chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
     async function sendMessage() {
-      const userText = input.value.trim();
-      if (!userText) return;
-      appendMessage("You", userText);
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+      appendMessage("You", userMsg);
       input.value = "";
 
-      history.push({ role: "user", content: userText });
+      appendMessage("StudyGoat", "…");
 
-      appendMessage("StudyGoat", "Thinking...");
+      try {
+        const response = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content‑Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: [
+              { role: "user", content: userMsg }
+            ]
+          })
+        });
 
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${API_KEY}`,
-          "HTTP-Referer": "https://yourdomain.com", // Optional, set to your GitHub Page link
-          "X-Title": "StudyGoat"
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: history
-        })
-      });
+        const data = await response.json();
 
-      const data = await res.json();
+        // Remove the … message
+        const lastMsg = chatDiv.lastChild;
+        if (lastMsg && lastMsg.innerHTML.includes("…")) {
+          chatDiv.removeChild(lastMsg);
+        }
 
-      const reply = data.choices?.[0]?.message?.content || "No reply.";
-      document.querySelectorAll("p").forEach(p => {
-        if (p.textContent.includes("Thinking...")) p.remove();
-      });
-
-      appendMessage("StudyGoat", reply);
-      history.push({ role: "assistant", content: reply });
+        if (data.choices && data.choices[0].message && data.choices[0].message.content) {
+          appendMessage("StudyGoat", data.choices[0].message.content);
+        } else {
+          appendMessage("StudyGoat", "Sorry — no reply (error).");
+          console.error("OpenRouter response:", data);
+        }
+      } catch (err) {
+        appendMessage("StudyGoat", "Error contacting AI.");
+        console.error(err);
+      }
     }
   </script>
 </body>
 </html>
-
